@@ -274,6 +274,11 @@ FloatingWindow {
     property bool qcMicLive: true
     property string qcMicSub: "Live"
 
+    property int diskPct: 0
+    property string diskUsed: "0G"
+    property string diskTotal: "0G"
+    property string diskFree: "0G"
+
     Process {
         id: qcProbeProc
         command: ["sh", Quickshell.env("HOME") + "/.config/quickshell/scripts/quick-controls-probe.sh"]
@@ -299,6 +304,13 @@ FloatingWindow {
 
                     root.qcMicLive = parts[8] === "1"
                     root.qcMicSub = parts[9]
+
+                    if (parts.length >= 14) {
+                        root.diskPct = parseInt(parts[10]) || 0
+                        root.diskUsed = parts[11] || "0G"
+                        root.diskTotal = parts[12] || "0G"
+                        root.diskFree = parts[13] || "0G"
+                    }
                 }
             }
         }
@@ -1512,6 +1524,49 @@ FloatingWindow {
                                 onValueChanged: if(pressed) { root.volume = value; if(value%0.05 < 0.01) root.setVolume(value) }
                                 background: Rectangle { implicitHeight: 7; radius: 4; color: colors.alpha(colors.surfaceVariant,0.55); Rectangle { width: parent.width * (volSlider.value - volSlider.from)/(volSlider.to - volSlider.from); height: parent.height; radius: 4; color: colors.primary; opacity: 0.9 } }
                                 handle: Rectangle { x: volSlider.leftPadding + volSlider.visualPosition * (volSlider.availableWidth - width); y: volSlider.topPadding + volSlider.availableHeight/2 - height/2; width: 18; height: 18; radius: 9; color: volSlider.pressed ? colors.primary : colors.background; border.width: 2; border.color: colors.primary; Behavior on color { ColorAnimation { duration: 150 } } }
+                            }
+                        }
+                        Rectangle { width: 1; Layout.fillHeight: true; Layout.topMargin: 2; Layout.bottomMargin: 2; color: colors.alpha(colors.outline,0.12) }
+                        // Space / Storage Bar
+                        ColumnLayout {
+                            Layout.fillWidth: true; spacing: 4
+                            RowLayout { spacing: 8; Layout.alignment: Qt.AlignVCenter; Layout.bottomMargin: 4
+                                Rectangle { width: 24; height: 24; radius: 12; color: colors.alpha(colors.tertiary,0.15); border.width:1; border.color: colors.alpha(colors.tertiary,0.3); Text { anchors.centerIn: parent; text: "󰋊"; color: colors.tertiary; font.family: colors.fontSans; font.pixelSize: 11 } }
+                                Text { text: "SPACE"; Layout.alignment: Qt.AlignVCenter; color: colors.alpha(colors.outline,0.65); font.family: colors.fontSans; font.pixelSize: 7; font.weight: Font.Bold; font.letterSpacing: 1.3 }
+                                Item { Layout.fillWidth: true }
+                                Row {
+                                    spacing: 4
+                                    Layout.alignment: Qt.AlignVCenter
+                                    Text { text: root.diskPct + "%"; Layout.alignment: Qt.AlignVCenter; color: root.diskPct > 90 ? colors.error : (root.diskPct > 75 ? colors.secondary : colors.tertiary); font.family: colors.fontSans; font.pixelSize: 10; font.weight: Font.ExtraBold }
+                                    Text { text: root.diskUsed + " / " + root.diskTotal; Layout.alignment: Qt.AlignVCenter; color: colors.alpha(colors.outline,0.65); font.family: colors.fontSans; font.pixelSize: 8; font.weight: Font.Medium }
+                                }
+                            }
+                            Item {
+                                Layout.fillWidth: true
+                                height: briSlider.height
+                                Rectangle {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: parent.width
+                                    height: 7
+                                    radius: 4
+                                    color: colors.alpha(colors.surfaceVariant,0.55)
+                                    Rectangle {
+                                        width: Math.max(4, parent.width * Math.max(0.01, Math.min(1.0, root.diskPct / 100)))
+                                        height: parent.height
+                                        radius: 4
+                                        color: root.diskPct > 90 ? colors.error : (root.diskPct > 75 ? colors.secondary : colors.tertiary)
+                                        opacity: 0.9
+                                        Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+                                    }
+                                }
+                                MouseArea {
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        Quickshell.execDetached(["sh","-c","if command -v baobab >/dev/null 2>&1; then baobab / >/dev/null 2>&1 & elif command -v btop >/dev/null 2>&1; then ghostty -e btop & fi"])
+                                    }
+                                }
                             }
                         }
                         Rectangle { width: 1; Layout.fillHeight: true; Layout.topMargin: 2; Layout.bottomMargin: 2; color: colors.alpha(colors.outline,0.12) }

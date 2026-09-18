@@ -70,4 +70,11 @@ if wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null | grep -q "MUTED"; then
     mic_sub="Muted"
 fi
 
-echo "$wifi_on|$wifi_sub|$bt_on|$bt_sub|$nl_on|$nl_sub|$dnd_on|$dnd_sub|$mic_live|$mic_sub"
+# 6. Disk Space (root /)
+disk_pct="0"
+disk_used="0G"
+disk_total="0G"
+disk_free="0G"
+read -r disk_pct disk_used disk_total disk_free < <(df -B1 / 2>/dev/null | awk 'NR==2 {printf "%d %dG %dG %dG", int(($3/$2)*100 + 0.5), int($3/1073741824 + 0.5), int($2/1073741824 + 0.5), int($4/1073741824 + 0.5)}')
+
+echo "$wifi_on|$wifi_sub|$bt_on|$bt_sub|$nl_on|$nl_sub|$dnd_on|$dnd_sub|$mic_live|$mic_sub|$disk_pct|$disk_used|$disk_total|$disk_free"

@@ -18,6 +18,7 @@ ShellRoot {
     Wallshelf { colors: barPalette }
     WorkspaceViewer { colors: barPalette }
     AudioVisualizer { colors: barPalette }
+    ActivityDashboard { colors: barPalette }
 
     Colors { id: barPalette }
 }

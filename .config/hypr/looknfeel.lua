@@ -98,5 +98,6 @@ o.window({ title = "^Bluetooth Manager$" }, { float = true, center = true, size 
 o.window({ class = "^(blueman-manager|org\\.pulseaudio\\.pavucontrol|pavucontrol)$" }, { float = true, center = true, size = { 860, 560 } })
 o.window({ class = "^(org\\.quickshell|quickshell)$", title = "^Cava$" }, { float = true, center = true, size = { 420, 160 } })
 o.window({ class = "^(org\\.quickshell|quickshell)$", title = "^Control Center$" }, { float = true, center = true, size = { 780, 620 } })
+o.window({ class = "^(org\\.quickshell|quickshell)$", title = "^Activity Dashboard$" }, { float = true, center = true, size = { 840, 310 } })
 
 

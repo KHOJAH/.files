@@ -4,76 +4,82 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 
-// uthmanHabit — graph + 7-day list, Hyprland FloatingWindow, no hover clutter
 FloatingWindow {
     id: root
     property var colors
     property bool open: false
-    title: "uthmanHabit"
-    implicitWidth: 440
-    implicitHeight: 440
-    minimumSize: Qt.size(400, 380)
-    maximumSize: Qt.size(500, 480)
+
+    title: "Screen Time Activity"
+    implicitWidth: 840
+    implicitHeight: 295
+    minimumSize: Qt.size(800, 260)
+    maximumSize: Qt.size(900, 340)
     color: "transparent"
     visible: root.open
 
-    IpcHandler { target: "screentime"; function toggle(): void { root.open = !root.open } }
-
-    // data comes from the `screentime` backend (Go daemon): `screentime --export all`
-    // -> { cells[105]{secs,future}, last7[]{display,secs,today}, total_secs }
-    function fmtDur(secs) {
-        if (secs <= 0) return "No activity"
-        var m = Math.floor(secs / 60)
-        if (m < 60) return m + " min"
-        var h = Math.floor(m / 60)
-        var rm = m % 60
-        if (rm === 0) return h + "h"
-        return h + "h " + rm + "m"
+    IpcHandler {
+        target: "screentime"
+        function toggle(): void { root.open = !root.open }
     }
 
-    property var heatCells: []
-    property var last7: []
-    property int totalSecs: 0
+    property string formattedTotal: "0m"
+    property string dailyAverage: "0m"
+    property int currentStreak: 0
+    property int longestStreak: 0
+    property int activeDays: 0
+    property var topApps: []
+    property var monthLabels: []
+    property var weeks: []
+    property var hoveredDay: null
 
     Process {
         id: fetcher
-        command: ["screentime", "--export", "all"]
+        command: ["python3", Quickshell.env("HOME") + "/.config/quickshell/scripts/screentime-calendar.py"]
         stdout: StdioCollector {
             waitForEnd: true
             onStreamFinished: {
-                var j = null
-                try { j = JSON.parse(text) } catch (e) { j = null }
-                if (!j) { root.heatCells = []; root.last7 = []; root.totalSecs = 0; return }
-                root.heatCells = j.cells || []
-                root.totalSecs = j.total_secs || 0
-                var days = []
-                var src = j.last7 || []
-                for (var i = 0; i < src.length; i++) {
-                    days.push({ display: src[i].display, secs: src[i].secs || 0, isToday: !!src[i].today })
-                }
-                root.last7 = days
+                try {
+                    var j = JSON.parse(text)
+                    if (j) {
+                        root.formattedTotal = j.formattedTotal || "0m"
+                        root.dailyAverage = j.dailyAverage || "0m"
+                        root.currentStreak = j.currentStreak || 0
+                        root.longestStreak = j.longestStreak || 0
+                        root.activeDays = j.activeDays || 0
+                        root.topApps = j.topApps || []
+                        root.monthLabels = j.monthLabels || []
+                        root.weeks = j.weeks || []
+                    }
+                } catch (e) {}
             }
         }
     }
-    onOpenChanged: if (open) { fetcher.running = true }
 
-    function heatColor(secs, future) {
-        if (future) return colors.alpha(colors.outline, 0.04)
-        if (secs <= 0) return colors.alpha(colors.outline, 0.08)
-        var m = secs / 60
-        if (m < 15) return colors.alpha(colors.primary, 0.18)
-        if (m < 60) return colors.alpha(colors.primary, 0.35)
-        if (m < 120) return colors.alpha(colors.primary, 0.55)
-        if (m < 240) return colors.alpha(colors.primary, 0.78)
-        return colors.primary
+    onOpenChanged: {
+        if (open) {
+            fetcher.running = true
+        } else {
+            root.hoveredDay = null
+        }
     }
-    function dotColor(secs) {
-        if (secs <= 0) return colors.alpha(colors.outline, 0.25)
-        var m = secs / 60
-        if (m < 15) return colors.alpha(colors.primary, 0.45)
-        if (m < 60) return colors.alpha(colors.primary, 0.65)
-        if (m < 120) return colors.alpha(colors.primary, 0.85)
-        return colors.primary
+
+    function heatColor(lvl) {
+        if (lvl === 0) return colors.alpha(colors.outline, 0.08)
+        if (lvl === 1) return colors.alpha(colors.secondary, 0.30)
+        if (lvl === 2) return colors.alpha(colors.secondary, 0.55)
+        if (lvl === 3) return colors.alpha(colors.secondary, 0.78)
+        return colors.secondary
+    }
+
+    function formatDate(ds) {
+        if (!ds) return ""
+        try {
+            var parts = ds.split("-")
+            var d = new Date(parts[0], parts[1] - 1, parts[2])
+            return d.toLocaleDateString(Qt.locale(), "dddd, MMM d, yyyy")
+        } catch (e) {
+            return ds
+        }
     }
 
     Rectangle {
@@ -82,126 +88,270 @@ FloatingWindow {
         radius: 16
         color: colors.alpha(colors.background, 0.96)
         border.width: 1
-        border.color: colors.alpha(colors.outline, 0.12)
+        border.color: colors.alpha(colors.outline, 0.14)
         scale: root.open ? 1 : 0.96
         opacity: root.open ? 1 : 0
-        Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-        Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+        Behavior on scale { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+
         focus: root.open
         Keys.onEscapePressed: root.open = false
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 16
-            spacing: 10
+            anchors.margins: 18
+            spacing: 11
 
+            // Top Header: Title, Stats & Close
             RowLayout {
                 Layout.fillWidth: true
+                spacing: 12
+
                 Text {
-                    text: "UTHMAN HABIT"
-                    color: colors.primary
+                    text: "SCREEN TIME ACTIVITY"
+                    color: colors.secondary
                     font.family: colors.fontSans
                     font.pixelSize: 11
                     font.weight: Font.ExtraBold
                     font.letterSpacing: 1.4
-                    Layout.fillWidth: true
                 }
+
+                Item { Layout.fillWidth: true }
+
+                // Stat Pills
+                Row {
+                    spacing: 8
+
+                    Rectangle {
+                        height: 22
+                        width: statCol1.width + 16
+                        radius: 6
+                        color: colors.alpha(colors.secondary, 0.10)
+                        border.width: 1
+                        border.color: colors.alpha(colors.secondary, 0.20)
+                        Row {
+                            id: statCol1
+                            anchors.centerIn: parent
+                            spacing: 4
+                            Text { text: root.formattedTotal; color: colors.secondary; font.family: colors.fontSans; font.pixelSize: 10; font.weight: Font.Bold }
+                            Text { text: "total"; color: colors.alpha(colors.foreground, 0.65); font.family: colors.fontSans; font.pixelSize: 9 }
+                        }
+                    }
+
+                    Rectangle {
+                        height: 22
+                        width: statCol2.width + 16
+                        radius: 6
+                        color: colors.alpha(colors.primary, 0.10)
+                        border.width: 1
+                        border.color: colors.alpha(colors.primary, 0.20)
+                        Row {
+                            id: statCol2
+                            anchors.centerIn: parent
+                            spacing: 4
+                            Text { text: root.dailyAverage; color: colors.primary; font.family: colors.fontSans; font.pixelSize: 10; font.weight: Font.Bold }
+                            Text { text: "avg/day"; color: colors.alpha(colors.foreground, 0.65); font.family: colors.fontSans; font.pixelSize: 9 }
+                        }
+                    }
+
+                    Rectangle {
+                        height: 22
+                        width: statCol3.width + 16
+                        radius: 6
+                        color: colors.alpha(colors.tertiary, 0.10)
+                        border.width: 1
+                        border.color: colors.alpha(colors.tertiary, 0.20)
+                        Row {
+                            id: statCol3
+                            anchors.centerIn: parent
+                            spacing: 4
+                            Text { text: "" + root.currentStreak + "d"; color: colors.tertiary; font.family: colors.fontSans; font.pixelSize: 10; font.weight: Font.Bold }
+                            Text { text: "streak"; color: colors.alpha(colors.foreground, 0.65); font.family: colors.fontSans; font.pixelSize: 9 }
+                        }
+                    }
+                }
+
+                // Close Button
                 Rectangle {
-                    width: 26; height: 26; radius: 13
-                    color: closeMa.containsMouse?colors.alpha(colors.surfaceVariant,0.4):"transparent"
-                    Text { anchors.centerIn: parent; text: "󰅖"; color: closeMa.containsMouse?colors.foreground:colors.alpha(colors.outline,0.7); font.family: colors.fontSans; font.pixelSize: 12 }
-                    MouseArea { id: closeMa; anchors.fill: parent; hoverEnabled:true; onClicked: root.open=false }
+                    width: 24
+                    height: 24
+                    radius: 12
+                    color: closeMa.containsMouse ? colors.alpha(colors.surfaceVariant, 0.5) : "transparent"
+                    Text {
+                        anchors.centerIn: parent
+                        text: "󰅖"
+                        color: closeMa.containsMouse ? colors.foreground : colors.alpha(colors.outline, 0.7)
+                        font.family: colors.fontSans
+                        font.pixelSize: 12
+                    }
+                    MouseArea {
+                        id: closeMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: root.open = false
+                    }
                 }
             }
 
-            // graph — 105 cells, static, no hover
+            // Calendar Grid Container (53 weeks)
             Item {
                 Layout.alignment: Qt.AlignHCenter
-                Layout.preferredWidth: 15*11 + 14*3
-                Layout.preferredHeight: 7*11 + 6*3
-                Grid {
-                    anchors.fill: parent
-                    columns: 15
-                    rows: 7
-                    columnSpacing: 3
-                    rowSpacing: 3
+                Layout.preferredWidth: 26 + (53 * 10) + (52 * 3)
+                Layout.preferredHeight: 14 + (7 * 10) + (6 * 3)
+
+                // Month labels across top
+                Row {
+                    x: 28
+                    y: 0
+                    spacing: 0
                     Repeater {
-                        model: 105
-                        Rectangle {
-                            required property int index
-                            width: 11; height: 11
-                            radius: 2
-                            color: root.heatCells.length === 105 ? root.heatColor(root.heatCells[index].secs, root.heatCells[index].future) : colors.alpha(colors.outline, 0.06)
+                        model: root.monthLabels
+                        Item {
+                            required property var modelData
+                            width: (modelData.col === 0 ? 32 : 55)
+                            height: 14
+                            Text {
+                                text: modelData.name
+                                color: colors.alpha(colors.outline, 0.65)
+                                font.family: colors.fontSans
+                                font.pixelSize: 8
+                                font.weight: Font.SemiBold
+                            }
+                        }
+                    }
+                }
+
+                // Day of week labels on left
+                Column {
+                    x: 0
+                    y: 16
+                    spacing: 3
+                    Item { width: 22; height: 10 } // Sun
+                    Item {
+                        width: 22; height: 10
+                        Text { anchors.left: parent.left; text: "Mon"; color: colors.alpha(colors.outline, 0.5); font.family: colors.fontSans; font.pixelSize: 8 }
+                    }
+                    Item { width: 22; height: 10 } // Tue
+                    Item {
+                        width: 22; height: 10
+                        Text { anchors.left: parent.left; text: "Wed"; color: colors.alpha(colors.outline, 0.5); font.family: colors.fontSans; font.pixelSize: 8 }
+                    }
+                    Item { width: 22; height: 10 } // Thu
+                    Item {
+                        width: 22; height: 10
+                        Text { anchors.left: parent.left; text: "Fri"; color: colors.alpha(colors.outline, 0.5); font.family: colors.fontSans; font.pixelSize: 8 }
+                    }
+                    Item { width: 22; height: 10 } // Sat
+                }
+
+                // 53 Columns of 7 Day cells
+                Row {
+                    x: 26
+                    y: 16
+                    spacing: 3
+                    Repeater {
+                        model: root.weeks
+                        Column {
+                            required property var modelData
+                            spacing: 3
+                            Repeater {
+                                model: modelData
+                                Rectangle {
+                                    id: cellRect
+                                    required property var modelData
+                                    width: 10
+                                    height: 10
+                                    radius: 2
+                                    color: root.heatColor(modelData.level)
+                                    border.width: cellMa.containsMouse ? 1 : 0
+                                    border.color: colors.foreground
+
+                                    MouseArea {
+                                        id: cellMa
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        onEntered: root.hoveredDay = modelData
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
 
+            // Bottom Footer: Tooltip status & Legend
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 6
-                Text { text: "Less"; color: colors.alpha(colors.outline,0.5); font.family: colors.fontSans; font.pixelSize: 8 }
+                spacing: 8
+
+                // Dynamic Hover Tooltip
+                Text {
+                    text: root.hoveredDay ? (root.formatDate(root.hoveredDay.date) + " — " + (root.hoveredDay.seconds > 0 ? (root.hoveredDay.formatted + " active") : "No activity recorded")) : "Hover over a day to view details"
+                    color: root.hoveredDay ? colors.foreground : colors.alpha(colors.outline, 0.5)
+                    font.family: colors.fontSans
+                    font.pixelSize: 9
+                    font.weight: root.hoveredDay ? Font.Medium : Font.Normal
+                    Layout.fillWidth: true
+                }
+
+                // Legend
+                Text {
+                    text: "Less"
+                    color: colors.alpha(colors.outline, 0.5)
+                    font.family: colors.fontSans
+                    font.pixelSize: 8
+                }
+
                 Row {
                     spacing: 3
                     Repeater {
-                        model: [0, 10*60, 45*60, 90*60, 200*60]
-                        Rectangle { width: 11; height: 11; radius: 2; color: root.heatColor(modelData, false) }
+                        model: [0, 1, 2, 3, 4]
+                        Rectangle {
+                            width: 10
+                            height: 10
+                            radius: 2
+                            color: root.heatColor(modelData)
+                        }
                     }
                 }
-                Text { text: "More"; color: colors.alpha(colors.outline,0.5); font.family: colors.fontSans; font.pixelSize: 8 }
-                Item { Layout.fillWidth: true }
-                Text { text: "Total " + root.fmtDur(root.totalSecs); color: colors.alpha(colors.outline,0.6); font.family: colors.fontSans; font.pixelSize: 9; font.weight: Font.Medium }
+
+                Text {
+                    text: "More"
+                    color: colors.alpha(colors.outline, 0.5)
+                    font.family: colors.fontSans
+                    font.pixelSize: 8
+                }
             }
 
-            Rectangle { Layout.fillWidth: true; height: 1; color: colors.alpha(colors.outline, 0.10) }
-
-            Text {
-                text: "LAST 7 DAYS"
-                color: colors.alpha(colors.outline, 0.55)
-                font.family: colors.fontSans
-                font.pixelSize: 8
-                font.weight: Font.Bold
-                font.letterSpacing: 1.2
-            }
-
-            ColumnLayout {
+            // Top Applications Pill Row
+            Row {
                 Layout.fillWidth: true
-                spacing: 3
+                spacing: 6
+                visible: root.topApps.length > 0
+
+                Text {
+                    text: "Top Apps:"
+                    color: colors.alpha(colors.outline, 0.6)
+                    font.family: colors.fontSans
+                    font.pixelSize: 8
+                    font.weight: Font.Bold
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+
                 Repeater {
-                    model: root.last7
-                    delegate: Rectangle {
+                    model: root.topApps.slice(0, 4)
+                    Rectangle {
                         required property var modelData
-                        Layout.fillWidth: true
-                        height: 28
-                        radius: 8
-                        color: modelData.isToday ? colors.alpha(colors.primary, 0.10) : "transparent"
-                        border.width: modelData.isToday ? 1 : 0
-                        border.color: modelData.isToday ? colors.alpha(colors.primary, 0.18) : "transparent"
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 10; anchors.rightMargin: 10
-                            spacing: 10
-                            Rectangle { width: 8; height: 8; radius: 4; color: root.dotColor(modelData.secs); Layout.alignment: Qt.AlignVCenter }
-                            Text {
-                                text: modelData.display
-                                color: modelData.isToday ? colors.primary : colors.foreground
-                                font.family: colors.fontSans
-                                font.pixelSize: 11
-                                font.weight: modelData.isToday ? Font.Bold : Font.Medium
-                                Layout.fillWidth: true
-                            }
-                            Text {
-                                text: modelData.isToday ? "today" : ""
-                                color: colors.alpha(colors.primary, 0.7)
-                                font.family: colors.fontSans; font.pixelSize: 8; font.weight: Font.Bold
-                                visible: modelData.isToday
-                            }
-                            Text {
-                                text: root.fmtDur(modelData.secs)
-                                color: modelData.secs > 0 ? colors.foreground : colors.alpha(colors.outline, 0.55)
-                                font.family: colors.fontSans; font.pixelSize: 10
-                                font.weight: modelData.secs > 0 ? Font.DemiBold : Font.Normal
-                            }
+                        height: 18
+                        width: appRow.width + 12
+                        radius: 4
+                        color: colors.alpha(colors.surfaceVariant, 0.4)
+                        Row {
+                            id: appRow
+                            anchors.centerIn: parent
+                            spacing: 4
+                            Text { text: modelData.app; color: colors.foreground; font.family: colors.fontSans; font.pixelSize: 8; font.weight: Font.SemiBold }
+                            Text { text: modelData.formatted; color: colors.alpha(colors.secondary, 0.85); font.family: colors.fontSans; font.pixelSize: 8 }
                         }
                     }
                 }

@@ -118,8 +118,10 @@ CORE_PACKAGES=(
     uwsm
     jq
     socat
+    github-cli
     inter-font
 )
+PACKAGES=("${CORE_PACKAGES[@]}")
 
 MISSING_PACKAGES=()
 
@@ -127,6 +129,7 @@ for pkg in "${CORE_PACKAGES[@]}"; do
     cmd_check="$pkg"
     case "$pkg" in
         "wl-clipboard") cmd_check="wl-copy" ;;
+        "github-cli") cmd_check="gh" ;;
         "inter-font")
             if fc-list | grep -qi " inter"; then
                 success "Found font: inter-font"
@@ -366,7 +369,7 @@ echo ""
 echo -e "  Quick tips:"
 echo -e "    ${CYAN}• Reload Hyprland:${RESET}      hyprctl reload  (or log out / log back in)"
 echo -e "    ${CYAN}• Change Wallpaper:${RESET}     ~/.local/bin/set-wallpaper <image>  or  matugen image <image>"
-echo -e "    ${CYAN}• Quickshell Keybinds:${RESET}  SUPER + SPACE (Launcher), SUPER + ALT + P (Control Center)"
+echo -e "    ${CYAN}• Quickshell Keybinds:${RESET}  SUPER + SPACE (Launcher), SUPER + G (Activity Dashboard), SUPER + ALT + P (Control Center)"
 echo -e "    ${CYAN}• App Keybinds:${RESET}         SUPER + RETURN (Ghostty), SUPER + Z (Close Window)"
 echo -e "    ${CYAN}• Theming Palette:${RESET}      ~/.config/theme/current/"
 echo ""

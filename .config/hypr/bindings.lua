@@ -23,6 +23,8 @@ hl.unbind("SUPER + CTRL + A")
 hl.unbind("SUPER + ALT + SPACE")
 hl.unbind("SUPER + ESCAPE")
 hl.unbind("XF86PowerOff")
+hl.unbind("SUPER + G")
+hl.unbind("SUPER + ALT + T")
 
 -- Window management: Close window with SUPER + Z instead of SUPER + W
 o.bind("SUPER + Z", "Close window", hl.dsp.window.close())
@@ -59,6 +61,8 @@ o.bind("SUPER + ALT + N", "PDF viewer library", "quickshell -p ~/.config/quicksh
 o.bind("SUPER + CTRL + SPACE", "Wallshelf wallpaper browser", "quickshell -p ~/.config/quickshell ipc call wallshelf toggle")
 o.bind("SUPER + ALT + O", "Workspace view", "quickshell -p ~/.config/quickshell ipc call wsview toggle")
 o.bind("SUPER + ALT + P", "Control center", "quickshell -p ~/.config/quickshell ipc call controlcenter toggle")
+o.bind("SUPER + G", "Activity Dashboard (GitHub & Screen Time)", "quickshell -p ~/.config/quickshell ipc call github toggle")
+o.bind("SUPER + ALT + T", "Screen time activity calendar", "quickshell -p ~/.config/quickshell ipc call screentime toggle")
 o.bind("SUPER + ALT + V", "Audio visualizer", "quickshell -p ~/.config/quickshell ipc call visualizer toggle")
 o.bind("SUPER + ESCAPE", "Power menu", "quickshell -p ~/.config/quickshell ipc call power toggle")
 o.bind("XF86PowerOff", "Power menu", "quickshell -p ~/.config/quickshell ipc call power toggle", { locked = true })

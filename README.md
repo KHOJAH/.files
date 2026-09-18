@@ -7,6 +7,7 @@ A complete, standalone, production-ready Desktop Environment. Built around [Hypr
 ![Desktop Overview](./assets/screenshots/screenshot-1.png)
 ![Fastfetch and System Info](./assets/screenshots/screenshot-2.png)
 ![btop System Monitor](./assets/screenshots/screenshot-3.png)
+![Activity Dashboard Heatmaps](./assets/screenshots/screenshot-4.png)
 
 ---
 
@@ -38,6 +39,11 @@ This setup was built on top of [uthman_dotfiles](https://github.com/codetesla51/
 
 6. **Hardened Security Exclusions:**
    - Strict `.gitignore` rules preventing accidental commits of SSH keys, tokens, browser profiles, shell histories, and application vaults (1Password, Signal, GitHub Copilot).
+
+7. **Unified Activity Dashboard:**
+   - Custom floating dashboard (`SUPER + G`) displaying GitHub contribution heatmaps and system Screen Time side-by-side for the last 3 months.
+   - Dynamic user resolution via GitHub CLI (`gh api graphql`) with no hardcoded dependencies.
+   - Integrated Matugen theming, live timestamp updates, and auto-refresh timers.
 
 ---
 
@@ -152,6 +158,7 @@ matugen image ~/Pictures/wallpaper.png --mode dark --type scheme-fidelity --cont
 ### Quickshell Desktop Controls
 | Keybinding | Action |
 | :--- | :--- |
+| `SUPER + G` | Toggle **Activity Dashboard** (GitHub & Screen Time heatmaps) |
 | `SUPER + ALT + P` | Open **Control Center** (Quick settings, sliders, media) |
 | `SUPER + B` | Toggle Top Bar visibility (full-screen focus mode) |
 | `SUPER + ALT + SPACE` | Toggle Island Style (**Capsule** vs **Trapezoid**) |

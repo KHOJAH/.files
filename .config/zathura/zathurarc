@@ -1,0 +1,55 @@
+set notification-error-bg       "#ffb4ab"
+set notification-error-fg       "#580003"
+set notification-warning-bg     "#cec5ba"
+set notification-warning-fg     "#2c2720"
+set notification-bg             "#141314"
+set notification-fg             "#eae6e6"
+
+set completion-bg               "#232323"
+set completion-fg               "#eae6e6"
+set completion-group-bg         "#232323"
+set completion-group-fg         "#c8c6c8"
+set completion-highlight-bg     "#c7c5cc"
+set completion-highlight-fg     "#27272c"
+
+set index-bg                    "#141314"
+set index-fg                    "#eae6e6"
+set index-active-bg             "#646469"
+set index-active-fg             "#ffffff"
+
+set inputbar-bg                 "#232323"
+set inputbar-fg                 "#eae6e6"
+set statusbar-bg                "#232323"
+set statusbar-fg                "#eae6e6"
+
+set highlight-color             "#c7c5cc"
+set highlight-active-color      "#c8c6c8"
+set default-bg                  "#141314"
+set default-fg                  "#eae6e6"
+set recolor-lightcolor          "#141314"
+set recolor-darkcolor           "#eae6e6"
+
+set render-loading              true
+set recolor                     true
+set recolor-keephue             true
+set adjust-open                 width
+set scroll-page-aware           true
+set selection-clipboard         clipboard
+
+# rice: basename in statusbar (z-library paths are endless), % position,
+# comfortable padding + terminal-matched font
+set font                        "FiraCode Nerd Font 10"
+set statusbar-basename          true
+set statusbar-page-percent      true
+set statusbar-h-padding         10
+set statusbar-v-padding         6
+set page-padding                12
+set scroll-step                 60
+set zoom-min                    20
+set zoom-max                    500
+
+# n/N flip pages (search-match nav moves to t/T)
+map n navigate next
+map N navigate previous
+map t search next
+map T search previous

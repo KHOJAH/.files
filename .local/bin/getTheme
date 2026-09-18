@@ -1,0 +1,88 @@
+#!/bin/bash
+
+THEME_TYPE="scheme-fidelity"
+CONTRAST="0.2"
+MODE="dark"
+WALLPAPER=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -t|--type)
+            val="$2"
+            [[ "$val" == scheme-* ]] && THEME_TYPE="scheme-fidelity" || THEME_TYPE="scheme-fidelity"
+            shift 2
+            ;;
+        -c|--contrast)
+            CONTRAST="0.2"
+            shift 2
+            ;;
+        -m|--mode)
+            MODE="dark"
+            shift 2
+            ;;
+        /*)
+            WALLPAPER="$1"
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+if [[ -z "$WALLPAPER" ]]; then
+    WALLPAPER=$(readlink ~/.config/theme/current/background 2>/dev/null | tr -d '[:space:]')
+    [[ -z "$WALLPAPER" ]] && WALLPAPER=$(readlink ~/.config/omarchy/current/background 2>/dev/null | tr -d '[:space:]')
+fi
+
+if [[ -z "$WALLPAPER" ]]; then
+    echo "Error: no wallpaper found"
+    exit 1
+fi
+
+if [[ ! -f "$WALLPAPER" ]]; then
+    echo "Error: wallpaper not found at $WALLPAPER"
+    exit 1
+fi
+
+echo "Generating theme from wallpaper..."
+echo "  Wallpaper: $WALLPAPER"
+echo "  Type: $THEME_TYPE"
+echo "  Contrast: $CONTRAST"
+echo "  Mode: $MODE"
+
+matugen image "$WALLPAPER" --mode "$MODE" --type "$THEME_TYPE" --contrast "$CONTRAST" --source-color-index 0
+
+if [[ $? -ne 0 ]]; then
+    echo "Error: matugen failed"
+    exit 1
+fi
+
+echo "Applying colors..."
+
+# Fire every reload in parallel so nothing flashes sequentially.
+# Hyprland re-sources colors.conf, so borders/window colors update too.
+hyprctl reload &
+
+# Only reload swaync if client is installed and running
+command -v swaync-client >/dev/null 2>&1 && timeout 0.5 swaync-client --reload-css 2>/dev/null &
+pkill -SIGUSR1 mako 2>/dev/null &
+touch ~/.config/ghostty/config 2>/dev/null &
+pkill -SIGUSR2 -x ghostty 2>/dev/null & true
+gen-zed-theme 2>/dev/null & true
+syncLimusicTheme 2>/dev/null & true
+
+# Live-update Cavasik colors (matugen already regenerated ~/.config/cavasik/colors.rgb)
+dbus-send --session --type=method_call --dest="io.github.TheWisker.Cavasik" \
+    "/io/github/TheWisker/Cavasik" "io.github.TheWisker.Cavasik.set_fg_colors" \
+    string:"${HOME}/.config/cavasik/colors.rgb" 2>/dev/null &
+
+# Live-reload any running nvim instances (via the --listen sockets).
+for sock in /tmp/nvim-"$USER"/*.sock; do
+    [[ -S "$sock" ]] || continue
+    nvim --server "$sock" --remote-send ':OmarchyReloadTheme<CR>' 2>/dev/null &
+done
+
+wait
+
+echo "Done!"

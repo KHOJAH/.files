@@ -1,0 +1,12 @@
+#!/bin/bash
+# nightlight — toggle warm display temperature via hyprsunset
+if pgrep -x hyprsunset >/dev/null; then
+  pkill -x hyprsunset
+else
+  temp=4500
+  if [ -f /tmp/hyprsunset-temp ]; then
+    t=$(cat /tmp/hyprsunset-temp 2>/dev/null | tr -d ' \n\rKk')
+    [ -n "$t" ] && temp="$t"
+  fi
+  setsid hyprsunset --temperature $temp >/dev/null 2>&1 < /dev/null &
+fi

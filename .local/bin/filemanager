@@ -1,0 +1,11 @@
+#!/bin/sh
+if [ -x "$HOME/projects/filemanager/target/release/filemanager" ]; then
+
+    exec env FILEMANAGER_UI="$HOME/projects/filemanager/ui" "$HOME/projects/filemanager/target/release/filemanager" "$@"
+elif command -v nautilus >/dev/null 2>&1; then
+    exec nautilus "$@"
+elif command -v thunar >/dev/null 2>&1; then
+    exec thunar "$@"
+else
+    exec xdg-open "$HOME"
+fi

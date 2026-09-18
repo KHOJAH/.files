@@ -1,0 +1,50 @@
+# Personal & sensitive files
+*.key
+*.pem
+*.pub
+*.token
+id_rsa*
+id_ed25519*
+known_hosts
+credentials
+*.env
+*.env.*
+.env
+
+# Shell history & caches
+.*_history
+.zcompdump*
+.cache/
+*.log
+*.tmp
+*.bak*
+
+# Application sensitive directories & databases
+1Password/
+Signal/
+github-copilot/
+gh/
+dconf/
+BraveSoftware/
+chromium/
+google-chrome*/
+microsoft-edge*/
+vivaldi*/
+.mozilla/firefox/*/places.sqlite*
+.mozilla/firefox/*/cookies.sqlite*
+.mozilla/firefox/*/key4.db*
+.mozilla/firefox/*/logins.json*
+.mozilla/firefox/*/storage/
+obsidian/
+
+# Compiled binaries
+*.o
+*.so
+*.a
+screentime
+agy
+
+# Editor swap & backup files
+*.swp
+*~
+.#*

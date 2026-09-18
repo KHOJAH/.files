@@ -1,0 +1,14 @@
+[Unit]
+Description=Dotfiles Control Panel
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=/home/khojah/dotfiles/panel/panel
+WorkingDirectory=/home/khojah/dotfiles/panel
+Restart=on-failure
+Environment=PORT=8765
+Environment=PATH=/home/khojah/.local/bin:/home/khojah/.local/share/omarchy/bin:/usr/local/bin:/usr/bin:/bin
+
+[Install]
+WantedBy=graphical-session.target

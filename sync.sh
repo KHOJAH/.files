@@ -33,6 +33,8 @@ if [ -d "$DOTFILES_SRC" ]; then
         --exclude='.git' \
         --exclude='README.md' \
         --exclude='install.sh' \
+        --exclude='sync.sh' \
+        --exclude='hypr/shaders/*' \
         --exclude='*.log' \
         --exclude='*.tmp' \
         --exclude='*.bak*' \

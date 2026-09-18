@@ -10,6 +10,37 @@ A complete, standalone, production-ready Desktop Environment. Built around [Hypr
 
 ---
 
+## Lineage and Enhancements over uthman_dotfiles
+
+This setup was built on top of [uthman_dotfiles](https://github.com/codetesla51/uthman_dotfiles) by codetesla51. While preserving the core aesthetic and Matugen dynamic theming pipeline, this repository introduces major architectural enhancements, custom components, and deployment automation:
+
+1. **Dual Omarchy and Arch Linux Architecture:**
+   - Added native Omarchy Linux integration through Lua-based Hyprland modules (`hyprland.lua`, `bindings.lua`, `autostart.lua`, `monitors.lua`, `looknfeel.lua`).
+   - Retains full standalone Arch Linux `.conf` pipeline compatibility.
+   - Automatic environment auto-detection in `install.sh` to configure the correct compositor target automatically.
+
+2. **Automated Dependency Resolution:**
+   - The installer automatically detects missing packages and prompts to batch-install all core and AUR dependencies via `yay`, `paru`, or `pacman`.
+   - Supports non-interactive automated installs via `./install.sh -y`.
+
+3. **Expanded Quickshell Desktop Shell:**
+   - Deeply customized and expanded `ControlCenter.qml` with over 1,200 lines of enhanced controls, sliders, and toggles.
+   - Dynamic island style switching between Capsule and Trapezoid layouts (`SUPER + ALT + SPACE`).
+   - Added hardware probe scripts (`quick-controls-probe.sh`), custom pet widgets, and refined bar components.
+
+4. **Self-Contained Offline Wallpapers and Clean Assets:**
+   - Bundled actual high-resolution wallpaper image files directly in `wallpapers/` (replacing host cache symlinks that break on new machines).
+   - Pruned dead system-wide shader symlinks for clean, zero-warning deployment.
+
+5. **Safe Conflict Handling and Fallback Symlinking:**
+   - Detects existing user configurations and moves them to timestamped backups (`~/.config-backup-<timestamp>`) before linking.
+   - Seamless fallback symlink engine if GNU Stow is not present on the host.
+
+6. **Hardened Security Exclusions:**
+   - Strict `.gitignore` rules preventing accidental commits of SSH keys, tokens, browser profiles, shell histories, and application vaults (1Password, Signal, GitHub Copilot).
+
+---
+
 ## Quick Start (Single-Pull Deployment)
 
 To adapt this complete desktop environment on a new installation or existing Arch machine:

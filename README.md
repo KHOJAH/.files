@@ -1,16 +1,16 @@
-# .files — Complete Desktop Environment (DE) Rice
+# .files - Complete Desktop Environment (DE) Rice
 
-> **Arch Linux & Omarchy** · **Hyprland** (Wayland) · **Quickshell** (Desktop Shell) · **Matugen** (Material You Dynamic Theming)
+> **Arch Linux & Omarchy** | **Hyprland** (Wayland) | **Quickshell** (Desktop Shell) | **Matugen** (Material You Dynamic Theming)
 
-A complete, standalone, production-ready Desktop Environment. Built around [Hyprland](https://hyprland.org) for smooth Wayland tiling, [Quickshell](https://quickshell.outfoxxed.me) for responsive glassmorphic UI panels and widgets, and [Matugen](https://github.com/InioX/matugen) to dynamically extract and inject color palettes across your entire system from any wallpaper in real time — including the login screen (SDDM).
+A complete, standalone, production-ready Desktop Environment. Built around [Hyprland](https://hyprland.org) for smooth Wayland tiling, [Quickshell](https://quickshell.outfoxxed.me) for responsive glassmorphic UI panels and widgets, and [Matugen](https://github.com/InioX/matugen) to dynamically extract and inject color palettes across your entire system from any wallpaper in real time - including the login screen (SDDM).
 
-![desktop-screenshot](./assets/screenshots/screenshot-1.png)
-![control-center-screenshot](./assets/screenshots/screenshot-2.png)
-![fastfetch-screenshot](./assets/screenshots/screenshot-3.png)
+![Desktop Overview](./assets/screenshots/screenshot-1.png)
+![Fastfetch and System Info](./assets/screenshots/screenshot-2.png)
+![btop System Monitor](./assets/screenshots/screenshot-3.png)
 
 ---
 
-## ⚡ Quick Start (Single-Pull Deployment)
+## Quick Start (Single-Pull Deployment)
 
 To adapt this complete desktop environment on a new installation or existing Arch machine:
 
@@ -24,7 +24,7 @@ chmod +x install.sh
 ./install.sh
 ```
 
-### What `install.sh` Does:
+### What install.sh Does:
 1. **Environment Detection:** Automatically detects whether you are running **Omarchy Linux** or **Standard Arch Linux** and configures the appropriate Hyprland pipeline (Omarchy Lua bootstrap vs. standalone `.conf`).
 2. **Automated Dependency Installation:** Detects your package manager / AUR helper (`yay`, `paru`, or `pacman`), identifies any missing packages, and prompts to install them in a single batch.
 3. **Safe Backup:** Automatically detects existing configuration files and backs them up to a timestamped folder (`~/.config-backup-<timestamp>`) before stowing.
@@ -41,7 +41,7 @@ To run non-interactively (e.g. in automated setups):
 
 ---
 
-## 🧩 The Desktop Environment Stack
+## The Desktop Environment Stack
 
 | Layer | Component | Description |
 | :--- | :--- | :--- |
@@ -59,7 +59,7 @@ To run non-interactively (e.g. in automated setups):
 
 ---
 
-## 🎨 Dual Support Architecture: Omarchy & Arch Linux
+## Dual Support Architecture: Omarchy & Arch Linux
 
 This repository is engineered to work seamlessly on both **Omarchy** and **Standard Arch Linux**:
 
@@ -70,7 +70,7 @@ This repository is engineered to work seamlessly on both **Omarchy** and **Stand
 
 ---
 
-## 🌈 How Dynamic Theming Works
+## How Dynamic Theming Works
 
 Every time you change your wallpaper, Matugen extracts the dominant color tones and generates a full Material You color palette. This is immediately broadcast to all applications live:
 
@@ -94,7 +94,7 @@ matugen image ~/Pictures/wallpaper.png --mode dark --type scheme-fidelity --cont
 
 ---
 
-## ⌨️ Keybindings Quick Reference
+## Keybindings Quick Reference
 
 ### Window Management
 | Keybinding | Action |
@@ -134,7 +134,7 @@ matugen image ~/Pictures/wallpaper.png --mode dark --type scheme-fidelity --cont
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 ~/.files/
@@ -174,7 +174,7 @@ matugen image ~/Pictures/wallpaper.png --mode dark --type scheme-fidelity --cont
 
 ---
 
-## 🔄 Adapting or Updating Configurations
+## Adapting or Updating Configurations
 
 Whenever you update your configurations in `~/.files`:
 
@@ -192,6 +192,6 @@ hyprctl reload
 
 ---
 
-## 🔒 Security & Privacy Guarantee
+## Security & Privacy Guarantee
 
-This repository is configured with strict `.gitignore` filters. Private SSH keys, GPG keys, browser profile databases (`places.sqlite`, `cookies.sqlite`, logins), 1Password / Signal vaults, GitHub / Copilot authentication tokens, and shell histories (`.zsh_history`) are **strictly excluded** from git tracking.
+This repository is configured with strict `.gitignore` filters. Private SSH keys, GPG keys, browser profile databases (`places.sqlite`, `cookies.sqlite`, logins), 1Password / Signal vaults, GitHub / Copilot authentication tokens, and shell histories (`.zsh_history`) are strictly excluded from git tracking.

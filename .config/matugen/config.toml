@@ -153,6 +153,7 @@ output_path = "~/.config/omarchy/current/theme/matugen-base.json"
 [templates.zed-standalone]
 input_path = "~/.config/matugen/templates/zed-palette.json"
 output_path = "~/.config/theme/current/matugen-base.json"
+post_hook = "gen-sublime-theme"
 
 [templates.firefox-content-theme]
 input_path = "~/.config/matugen/templates/firefox-content.css"
